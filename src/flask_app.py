@@ -5,9 +5,9 @@ from flask import jsonify
 from src.task_assignment_box import Database, TaskAssignmentBaseline
 
 # DB constants
-USER = 'federer'
-PASSWORD = 'grandestslam'
-DB = 'tennis'
+USER = 'postgres'
+PASSWORD = 'postgres'
+DB = 'crowdrev'
 HOST = 'localhost'
 PORT = 5432
 

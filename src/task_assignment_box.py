@@ -1,4 +1,5 @@
 import sqlalchemy
+import pandas as pd
 
 
 class Database:
@@ -34,19 +35,49 @@ class TaskAssignmentBaseline:
         self.max_items = max_items
 
     def get_tasks(self):
-        items = [1, 2, 3]
-        criteria = [1]
+        sql_filter_list = '''
+                        select c.* from job j 
+                        join project p on j.project_id = p.id
+                        join criterion c on c.project_id = p.id where j.id = {job_id};
+                    '''.format(job_id=self.job_id)
+        filter_list = pd.read_sql(sql_filter_list, self.con)['id'].values
 
-        items_total = 100
-        filter_list = [1, 2, 3]
-        items_tolabel = 10
+        for filter_id in filter_list:
+            sql_items_tolabel = '''
+                        select i.id, coalesce(item_votes.votes, 0) as votes 
+                        from (select item_id, votes from 
+                          (select t.item_id, count(t.*) as votes from task t
+                            where t.job_id = {job_id}
+                              and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
+                              and t.data ->> 'answered' = 'true'
+                            group by t.item_id
+                          ) v 
+                          where votes < {max_votes}
+                                and item_id not in (
+                                  select t.item_id from task t
+                                  where t.job_id = {job_id}
+                                        and t.worker_id = {worker_id}
+                                        and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
+                                        and t.data ->> 'answered' = 'true'
+                                )
+                        ) item_votes right join item i on i.id = item_votes.item_id
+                        where i.id not in (
+                          select t.item_id from task t
+                            where t.job_id = {job_id}
+                              and t.worker_id = {worker_id}
+                              and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
+                              and t.data ->> 'answered' = 'true'
+                        );
+                    '''.format(filter_id=filter_id, worker_id=self.worker_id, job_id=self.job_id, max_votes=10)
 
-        for filter in filter_list:
-            if items_tolabel == items_total:
+            items_tolabel = pd.read_sql(sql_items_tolabel, self.con)['id'].values
+            items_tolabel_num = len(items_tolabel)
+
+            if items_tolabel_num == 0:
                 continue
-            if items_tolabel >= self.max_items:
-                return items, criteria
+            if items_tolabel_num >= self.max_items:
+                return [int(i) for i in items_tolabel[:self.max_items]], [int(filter_id)]
             else:
-                return items, criteria
+                return [int(i) for i in items_tolabel], [int(filter_id)]
 
         return None, None
