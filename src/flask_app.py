@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 
-from src.tab_baseline import Database, TaskAssignment
+from src.task_assignment_box import Database, TaskAssignmentBaseline
 
 # DB constants
 USER = 'federer'
@@ -17,7 +17,6 @@ app = Flask(__name__)
 
 @app.route('/next-task', methods=['GET'])
 def tab_baseline():
-    print(1111)
     job_id = request.args.get('jobID')
     worker_id = request.args.get('workerID')
     max_items = request.args.get('maxItems')
@@ -27,7 +26,7 @@ def tab_baseline():
     con, meta = database.connect()
 
     # task assignment baseline
-    tab = TaskAssignment(con, job_id, worker_id, max_items)
+    tab = TaskAssignmentBaseline(con, job_id, worker_id, max_items)
     items, criteria = tab.get_tasks()
 
     response = {

@@ -25,7 +25,7 @@ class Database:
         return con, meta
 
 
-class TaskAssignment:
+class TaskAssignmentBaseline:
 
     def __init__(self, con, job_id, worker_id, max_items):
         self.con = con
