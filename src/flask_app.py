@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 
-from src.utils import Database, TaskAssignment
+from src.tab_baseline import Database, TaskAssignment
 
 # DB constants
 USER = 'federer'
