@@ -37,4 +37,16 @@ class TaskAssignmentBaseline:
         items = [1, 2, 3]
         criteria = [1]
 
-        return items, criteria
+        items_total = 100
+        filter_list = [1, 2, 3]
+        items_tolabel = 10
+
+        for filter in filter_list:
+            if items_tolabel == items_total:
+                continue
+            if items_tolabel >= self.max_items:
+                return items, criteria
+            else:
+                return items, criteria
+
+        return None, None

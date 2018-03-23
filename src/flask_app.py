@@ -17,9 +17,9 @@ app = Flask(__name__)
 
 @app.route('/next-task', methods=['GET'])
 def tab_baseline():
-    job_id = request.args.get('jobID')
-    worker_id = request.args.get('workerID')
-    max_items = request.args.get('maxItems')
+    job_id = int(request.args.get('jobID'))
+    worker_id = int(request.args.get('workerID'))
+    max_items = int(request.args.get('maxItems'))
 
     # connect to database
     database = Database(USER, PASSWORD, DB, HOST, PORT)
@@ -29,9 +29,17 @@ def tab_baseline():
     tab = TaskAssignmentBaseline(con, job_id, worker_id, max_items)
     items, criteria = tab.get_tasks()
 
-    response = {
-            'items': items,
-            'criteria': criteria
-    }
+    # check if job is finished
+    # items == None -> job finished
+    # items == [] -> no items to a given worker
+    if items != None:
+        response = {
+                'items': items,
+                'criteria': criteria
+        }
+    else:
+        response = {
+            'done': True
+        }
 
     return jsonify(response)
