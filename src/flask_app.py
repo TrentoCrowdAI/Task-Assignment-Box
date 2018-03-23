@@ -11,6 +11,9 @@ DB = 'tennis'
 HOST = 'localhost'
 PORT = 5432
 
+# connect to database
+database = Database(USER, PASSWORD, DB, HOST, PORT)
+con, meta = database.connect()
 
 app = Flask(__name__)
 
@@ -20,10 +23,6 @@ def tab_baseline():
     job_id = int(request.args.get('jobID'))
     worker_id = int(request.args.get('workerID'))
     max_items = int(request.args.get('maxItems'))
-
-    # connect to database
-    database = Database(USER, PASSWORD, DB, HOST, PORT)
-    con, meta = database.connect()
 
     # task assignment baseline
     tab = TaskAssignmentBaseline(con, job_id, worker_id, max_items)
