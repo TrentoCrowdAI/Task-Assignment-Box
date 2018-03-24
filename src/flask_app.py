@@ -2,7 +2,8 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 
-from src.task_assignment_box import Database, TaskAssignmentBaseline
+from src.task_assignment_box import TaskAssignmentBaseline
+from src.db import Database
 
 # DB constants
 USER = 'postgres'
@@ -12,8 +13,7 @@ HOST = 'localhost'
 PORT = 5432
 
 # connect to database
-database = Database(USER, PASSWORD, DB, HOST, PORT)
-con, meta = database.connect()
+db = Database(USER, PASSWORD, DB, HOST, PORT)
 
 app = Flask(__name__)
 
@@ -25,7 +25,7 @@ def tab_baseline():
     max_items = int(request.args.get('maxItems'))
 
     # task assignment baseline
-    tab = TaskAssignmentBaseline(con, job_id, worker_id, max_items)
+    tab = TaskAssignmentBaseline(db, job_id, worker_id, max_items)
     items, criteria = tab.get_tasks()
 
     # check if job is finished
