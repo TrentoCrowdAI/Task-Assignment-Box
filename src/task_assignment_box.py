@@ -15,7 +15,8 @@ class Database:
         '''Returns a connection and a metadata object'''
         # connect with the help of the PostgreSQL URL
         url = 'postgresql://{}:{}@{}:{}/{}'
-        url = url.format(self.user, self.password, self.host, self.port, self.db)
+        url = url.format(self.user, self.password,
+                         self.host, self.port, self.db)
 
         # connection object
         con = sqlalchemy.create_engine(url, client_encoding='utf8')
@@ -41,6 +42,11 @@ class TaskAssignmentBaseline:
                         join criterion c on c.project_id = p.id where j.id = {job_id};
                     '''.format(job_id=self.job_id)
         filter_list = pd.read_sql(sql_filter_list, self.con)['id'].values
+
+        sql_max_votes = '''
+          select data ->> 'votesPerTaskRule' as max_votes from job where id = {job_id}
+        '''.format(job_id=self.job_id)
+        max_votes = pd.read_sql(sql_max_votes, self.con)['max_votes'].values[0]
 
         for filter_id in filter_list:
             sql_items_tolabel = '''
@@ -68,9 +74,10 @@ class TaskAssignmentBaseline:
                               and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
                               and t.data ->> 'answered' = 'true'
                         );
-                    '''.format(filter_id=filter_id, worker_id=self.worker_id, job_id=self.job_id, max_votes=10)
+                    '''.format(filter_id=filter_id, worker_id=self.worker_id, job_id=self.job_id, max_votes=max_votes)
 
-            items_tolabel = pd.read_sql(sql_items_tolabel, self.con)['id'].values
+            items_tolabel = pd.read_sql(
+                sql_items_tolabel, self.con)['id'].values
             items_tolabel_num = len(items_tolabel)
 
             if items_tolabel_num == 0:

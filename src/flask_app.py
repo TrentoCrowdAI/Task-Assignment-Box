@@ -20,8 +20,8 @@ app = Flask(__name__)
 
 @app.route('/next-task', methods=['GET'])
 def tab_baseline():
-    job_id = int(request.args.get('jobID'))
-    worker_id = int(request.args.get('workerID'))
+    job_id = int(request.args.get('jobId'))
+    worker_id = int(request.args.get('workerId'))
     max_items = int(request.args.get('maxItems'))
 
     # task assignment baseline
@@ -33,8 +33,8 @@ def tab_baseline():
     # items == [] -> no items to a given worker
     if items != None:
         response = {
-                'items': items,
-                'criteria': criteria
+            'items': items,
+            'criteria': criteria
         }
     else:
         response = {
