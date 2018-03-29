@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -6,11 +7,11 @@ from src.task_assignment_box import TaskAssignmentBaseline
 from src.db import Database
 
 # DB constants
-USER = 'postgres'
-PASSWORD = 'postgres'
-DB = 'crowdrev'
-HOST = 'localhost'
-PORT = 5432
+USER = os.getenv('PGUSER') or 'postgres'
+PASSWORD = os.getenv('PGPASSWORD') or 'postgres'
+DB = os.getenv('PGDATABASE') or 'crowdrev'
+HOST = os.getenv('PGHOST') or 'localhost'
+PORT = os.getenv('PGPORT') or 5432
 
 # connect to database
 db = Database(USER, PASSWORD, DB, HOST, PORT)
