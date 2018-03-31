@@ -87,3 +87,18 @@ class Database:
 
         return items_tolabel
 
+    def get_worker_votes_count(self, job_id, worker_id):
+        '''
+        :param worker_id:
+        :param job_id:
+        :return: the worker's votes count.
+        '''
+        sql_votes = '''
+          select count(t.*) as count from task t
+            where t.job_id = {job_id}
+                and t.worker_id = {worker_id}
+                and t.data ->> 'answered' = 'true'
+        '''.format(job_id=job_id, worker_id=worker_id)
+        votes_count = pd.read_sql(sql_votes, self.con)['count'].values[0]
+        return votes_count
+

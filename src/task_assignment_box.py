@@ -18,5 +18,8 @@ class TaskAssignmentBaseline:
                 return items_tolabel[:self.max_items], [filter_id]
             else:
                 return items_tolabel, [filter_id]
-
+                
+        worker_votes_count = self.db.get_worker_votes_count(self.job_id, self.worker_id)
+        if worker_votes_count > 0:
+          return [], []
         return None, None
