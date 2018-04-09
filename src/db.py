@@ -51,35 +51,21 @@ class Database:
         :return: list of ids of items to be labeled
         '''
         sql_job = '''
-          select project_id, data ->> 'votesPerTaskRule' as max_votes from job where id = {job_id}
+          select project_id, (data ->> 'votesPerTaskRule')::int as max_votes from job where id = {job_id}
         '''.format(job_id=job_id)
         max_votes, project_id = pd.read_sql(sql_job, self.con)[['max_votes', 'project_id']].values[0]
 
         sql_items_tolabel = '''
-                                select i.id, coalesce(item_votes.votes, 0) as votes 
-                                from (select item_id, votes from 
-                                  (select t.item_id, count(t.*) as votes from task t
-                                    where t.job_id = {job_id}
-                                      and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
-                                      and t.data ->> 'answered' = 'true'
-                                    group by t.item_id
-                                  ) v 
-                                  where votes < {max_votes}
-                                        and item_id not in (
-                                          select t.item_id from task t
-                                          where t.job_id = {job_id}
-                                                and t.worker_id = {worker_id}
-                                                and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
-                                                and t.data ->> 'answered' = 'true'
-                                        )
-                                ) item_votes right join item i on i.id = item_votes.item_id
-                                where i.id not in (
+                              select i.id from item i
+                                where i.project_id = {project_id}
+                                and i.id not in (
                                   select t.item_id from task t
                                     where t.job_id = {job_id}
                                       and t.worker_id = {worker_id}
                                       and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
-                                      and t.data ->> 'answered' = 'true'
-                                ) and i.project_id = {project_id};
+                                      and (t.data ->> 'answered')::boolean = true
+                                )
+                                and compute_item_votes({job_id}::bigint, i.id, {filter_id}::bigint) < {max_votes};
                             '''.format(filter_id=filter_id, worker_id=worker_id, job_id=job_id, max_votes=max_votes, project_id=project_id)
 
         items_tolabel = pd.read_sql(sql_items_tolabel, self.con)['id'].values
