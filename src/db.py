@@ -50,10 +50,10 @@ class Database:
         :param max_votes:
         :return: list of ids of items to be labeled
         '''
-        sql_max_votes = '''
-          select data ->> 'votesPerTaskRule' as max_votes from job where id = {job_id}
+        sql_job = '''
+          select project_id, data ->> 'votesPerTaskRule' as max_votes from job where id = {job_id}
         '''.format(job_id=job_id)
-        max_votes = pd.read_sql(sql_max_votes, self.con)['max_votes'].values[0]
+        max_votes, project_id = pd.read_sql(sql_job, self.con)[['max_votes', 'project_id']].values[0]
 
         sql_items_tolabel = '''
                                 select i.id, coalesce(item_votes.votes, 0) as votes 
@@ -79,8 +79,8 @@ class Database:
                                       and t.worker_id = {worker_id}
                                       and t.data @> '{{"criteria" : [{{"id": "{filter_id}"}}]}}'
                                       and t.data ->> 'answered' = 'true'
-                                );
-                            '''.format(filter_id=filter_id, worker_id=worker_id, job_id=job_id, max_votes=max_votes)
+                                ) and i.project_id = {project_id};
+                            '''.format(filter_id=filter_id, worker_id=worker_id, job_id=job_id, max_votes=max_votes, project_id=project_id)
 
         items_tolabel = pd.read_sql(sql_items_tolabel, self.con)['id'].values
         items_tolabel = [int(i) for i in items_tolabel]
