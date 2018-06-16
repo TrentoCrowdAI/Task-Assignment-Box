@@ -13,10 +13,15 @@ DB = os.getenv('PGDATABASE') or 'crowdrev'
 HOST = os.getenv('PGHOST') or 'localhost'
 PORT = os.getenv('PGPORT') or 5432
 
-# connect to database
-db = Database(USER, PASSWORD, DB, HOST, PORT)
+db = None
+
+# connect to the database
+def setup_db():
+  global db
+  db = Database(USER, PASSWORD, DB, HOST, PORT)
 
 app = Flask(__name__)
+app.before_first_request(setup_db)
 
 
 @app.route('/next-task', methods=['GET'])
